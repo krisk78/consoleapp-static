@@ -1,0 +1,26 @@
+{
+  "name": "consoleApp-static",
+  "version": "1.0.0-beta",
+  "description": "Static library that provides a framework to manage a file batch processing command line application",
+  "homepage": "https://github.com/krisk78/consoleApp-static",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
+    "usage-static"
+  ],
+  "features": {
+    "tests": {
+      "description": "Building tests",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  }
+}

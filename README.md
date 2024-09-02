@@ -1,0 +1,1 @@
+# consoleApp-static static library
