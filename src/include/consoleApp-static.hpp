@@ -1,7 +1,5 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-
 /*! \file consoleapp.hpp
 *	\brief Implements the class ConsoleApp.
 *   \author Christophe COUAILLET
@@ -9,8 +7,10 @@
 
 #include <filesystem>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "../usage/usage.hpp"
+#include <usage-static.hpp>
 
 /*! \brief An abstract class that implements a framework for console applications that process files.
 

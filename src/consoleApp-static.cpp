@@ -1,10 +1,20 @@
 // consoleapp.cpp : Defines the functions for the static library.
 //
 
-#include "pch.h"
+#ifdef _WIN32
+#define UNICODE
+#include <Windows.h>
+#endif
 
-#include "consoleapp.hpp"
-#include "../utils/utils.hpp"
+#include <ios>
+#include <iostream>
+#include <sstream>
+#include <cassert>
+#include <system_error>
+
+#include <consoleapp-static.hpp>
+#include <file-utils-static.hpp>
+#include <str-utils-static.hpp>
 
 std::string ConsoleApp::Arguments(int argc, char* argv[])
 {

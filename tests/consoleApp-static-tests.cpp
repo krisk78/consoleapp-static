@@ -1,9 +1,13 @@
-#include "pch.h"
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define UNICODE
+#include <Windows.h>
+#endif
 
-#include "../ConsoleAppFW/consoleapp.hpp"
-#include "../utils/utils.hpp"
+#include <gtest/gtest.h>
+#include <consoleapp-static.hpp>
+#include <str-utils-static.hpp>
 
 class MyApp : public ConsoleApp
 {
@@ -38,23 +42,41 @@ using MyAppTestDeath = MyAppTest;
 
 TEST_F(MyAppTest, Wrong_Syntax)
 {
+#ifdef _WIN32
+	std::string expected_str{ "Unknown argument '/t' - see program.exe /? for help." };
 	std::vector<char*> argv{ "program.exe", "/t" };
-	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "Unknown argument '/t' - see program.exe /? for help.");
-	EXPECT_STREQ(cons1.Arguments((int)argv.size(), &argv[0]).c_str(), "Unknown argument '/t' - see program.exe /? for help.");
+#elif __unix__
+	std::string expected_str{ "Unknown argument '-t' - see program.exe -h for help." };
+	std::vector<char*> argv{ "program.exe", "-t" };
+#endif
+	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), expected_str.c_str());
+#ifdef _WIN32
+	EXPECT_STREQ(cons1.Arguments((int)argv.size(), &argv[0]).c_str(), expected_str.c_str());
+#endif
 }
 
 TEST_F(MyAppTestDeath, Parse_More_Than_One_Time)
 {
+#ifdef _WIN32
 	std::vector<char*> argv{ "program.exe", "/t" };
+#elif __unix__
+	std::vector<char*> argv{ "program.exe", "-t" };
+#endif
 	cons0.Arguments((int)argv.size(), &argv[0]);
 	EXPECT_DEATH(cons0.Arguments((int)argv.size(), &argv[0]), "");
 }
 
 TEST_F(MyAppTest, Help)
 {
+#ifdef _WIN32
 	std::vector<char*> argv{ "program.exe", "/?" };
+#elif __unix__
+	std::vector<char*> argv{ "program.exe", "-h" };
+#endif
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "?");
+#ifdef _WIN32
 	EXPECT_STREQ(cons1.Arguments((int)argv.size(), &argv[0]).c_str(), "?");
+#endif
 }
 
 TEST_F(MyAppTestDeath, Run_Without_Parsing_Arguments)
@@ -64,14 +86,23 @@ TEST_F(MyAppTestDeath, Run_Without_Parsing_Arguments)
 
 TEST_F(MyAppTest, No_Matching_File)
 {
-	std::vector<char*> argv{ "program.exe", "H:/Windows/System32/msxml2.*" };
+#ifdef _WIN32
+	char* path = SOURCE_DIR "\\tests\\msxml2.*";
+#elif __unix__
+	char* path = SOURCE_DIR "/tests/msxml2.*";
+#endif
+	std::vector<char*> argv{ "program.exe", path };
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "Arguments are checked.");
 	EXPECT_ANY_THROW(cons0.Run());
 }
 
 TEST_F(MyAppTest, Matching_Files)
 {
-	std::vector<char*> argv{ "program.exe", "H:/Windows/System32/msxml?.*" };
+#ifdef _WIN32
+	std::vector<char*> argv{ "program.exe", SOURCE_DIR "\\tests\\msxml?.*" };
+#elif __unix__
+	std::vector<char*> argv{ "program.exe", SOURCE_DIR "/tests/msxml?.*" };
+#endif
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "Arguments are checked.");
 	auto files = cons0.values("file");
 	EXPECT_EQ(files.size(), 1);
@@ -84,11 +115,19 @@ TEST_F(MyAppTestDeath, Get_Values_Before_Parsing_Arguments)
 
 TEST_F(MyAppTest, Run_Test)
 {
-	std::vector<char*> argv{ "program.exe", "H:/Windows/System32/msxml?.*" };
+#ifdef _WIN32
+	std::vector<char*> argv{ "program.exe", SOURCE_DIR "\\tests\\msxml?.*" };
+#elif __unix__
+	std::vector<char*> argv{ "program.exe", SOURCE_DIR "/tests/msxml?.*" };
+#endif
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "Arguments are checked.");
+#ifdef _WIN32
 	EXPECT_STREQ(cons1.Arguments((int)argv.size(), &argv[0]).c_str(), "Arguments are checked.");
+#endif
 	EXPECT_EQ(cons0.Run(), 2);
+#ifdef _WIN32
 	EXPECT_EQ(cons1.Run(), 2);
+#endif
 }
 
 void MyApp::SetUsage()

@@ -35,7 +35,7 @@
       "displayName": "x64 Debug & Test",
       "inherits": "x64-debug",
       "cacheVariables": {
-        "consoleApp-static_BUILD_TESTS": "ON"
+        "consoleapp-static_BUILD_TESTS": "ON"
       }
     },
     {
@@ -93,7 +93,7 @@
       "displayName": "Linux Debug & Test",
       "inherits": "linux-debug",
       "cacheVariables": {
-        "consoleApp-static_BUILD_TESTS": "ON"
+        "consoleapp-static_BUILD_TESTS": "ON"
       }
     },
     {

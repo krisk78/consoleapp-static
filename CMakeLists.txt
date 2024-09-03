@@ -9,8 +9,8 @@ if (POLICY CMP0141)
 endif()
 
 # Set project name and its dependencies
-set(PROJECT_NAME "consoleApp-static")
-set(${PROJECT_NAME}_DEPENDENCIES "usage-static")
+set(PROJECT_NAME "consoleapp-static")
+set(${PROJECT_NAME}_DEPENDENCIES "usage-static;str-utils-static;file-utils-static")
 set(${PROJECT_NAME}_INTERFACES "")
 
 # Option for building tests
