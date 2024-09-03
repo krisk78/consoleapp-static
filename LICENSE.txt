@@ -1,4 +1,4 @@
-Static library consoleApp-static
+Static library consoleapp-static
 Copyright (c) 2024 Christophe COUAILLET
 
 MIT License
