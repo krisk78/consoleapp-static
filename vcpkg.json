@@ -1,6 +1,6 @@
 {
   "name": "consoleapp-static",
-  "version": "1.0.0-beta",
+  "version": "1.0.1-beta",
   "description": "Static library that provides a framework to manage a file batch processing command line application",
   "homepage": "https://github.com/krisk78/consoleapp-static",
   "license": "MIT",
