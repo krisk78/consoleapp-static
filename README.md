@@ -1,1 +1,1 @@
-# consoleApp-static static library
+# consoleapp-static static library
