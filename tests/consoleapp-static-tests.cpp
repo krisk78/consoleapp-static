@@ -1,6 +1,6 @@
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+	#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #define UNICODE
 #include <Windows.h>
 #endif
@@ -11,7 +11,7 @@
 #include <consoleapp-static.hpp>
 #include <str-utils-static.hpp>
 
-class MyApp : public ConsoleApp
+class MyApp : public ConsoleApp::ConsoleApp
 {
 public:
 	MyApp() : ConsoleApp() {};
@@ -221,13 +221,13 @@ TEST_F(MyAppTest, GetOutPath_RemoveExtension)
 void MyApp::SetUsage()
 {
 	us.set_syntax("program.exe arguments...");
-	Unnamed_Arg f{ "file" };
+	Usage::Unnamed_Arg f{ "file" };
 	f.set_required(true);
 	f.many = true;
 	us.add_Argument(f);
-	Named_Arg ext{ "extension" };
+	Usage::Named_Arg ext{ "extension" };
 	ext.shortcut_char = 'o';
-	ext.set_type(Argument_Type::string);
+	ext.set_type(Usage::Argument_Type::string);
 	ext.set_default_value(".ext");
 	us.add_Argument(ext);
 	us.description = "Program description.";
@@ -243,7 +243,7 @@ void MyApp::PreProcess()
 	const std::string msg{ "Preprocessing..." };
 #ifdef _WIN32
 	if (windows_mode())
-		MessageBox(NULL, str_to_wstr(msg, CP_ACP).c_str(), str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 	else
 #endif // _WIN32
 		std::cout << msg << std::endl;
@@ -254,7 +254,7 @@ void MyApp::MainProcess(const std::filesystem::path& file)
 	const std::string msg{ "Processing file " + file.string() };
 #ifdef _WIN32
 	if (windows_mode())
-		MessageBox(NULL, str_to_wstr(msg, CP_ACP).c_str(), str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 	else
 #endif // _WIN32
 		std::cout << msg << std::endl;
@@ -265,7 +265,7 @@ void MyApp::PostProcess()
 	const std::string msg{ "Postprocessing..." };
 #ifdef _WIN32
 	if (windows_mode())
-		MessageBox(NULL, str_to_wstr(msg, CP_ACP).c_str(), str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 	else
 #endif // _WIN32
 		std::cout << msg << std::endl;

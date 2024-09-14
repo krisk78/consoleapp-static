@@ -1,4 +1,4 @@
-// consoleapp.cpp : Defines the functions for the static library.
+// \file consoleapp-static.cpp : Defines the functions for the static library.
 //
 
 #ifdef _WIN32
@@ -16,7 +16,7 @@
 #include <file-utils-static.hpp>
 #include <str-utils-static.hpp>
 
-std::string ConsoleApp::Arguments(int argc, char* argv[])
+std::string ConsoleApp::ConsoleApp::Arguments(int argc, char* argv[])
 {
 	assert(!m_argschecked && "Arguments checks were already performed.");	// Arguments function should be called once
 	SetUsage();
@@ -35,7 +35,7 @@ std::string ConsoleApp::Arguments(int argc, char* argv[])
 		{
 			std::ostringstream os;
 			os << us;
-			MessageBox(NULL, str_to_wstr(os.str(), CP_ACP).c_str(), str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+			MessageBox(NULL, str_utils::str_to_wstr(os.str(), CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 		}
 		else
 #endif // _WIN32
@@ -48,7 +48,7 @@ std::string ConsoleApp::Arguments(int argc, char* argv[])
 	{
 #ifdef _WIN32
 		if (m_windowsmode)
-			MessageBox(NULL, str_to_wstr(msg, CP_ACP).c_str(), str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONERROR | MB_OK);
 		else
 #endif // _WIN32
 			std::cout << msg;
@@ -57,19 +57,19 @@ std::string ConsoleApp::Arguments(int argc, char* argv[])
 	return msg;
 }
 
-std::unordered_map<std::string, std::vector<std::string>> ConsoleApp::values() const
+std::unordered_map<std::string, std::vector<std::string>> ConsoleApp::ConsoleApp::values() const
 {
 	assert(m_argschecked && "Attempt to get values before parsing command line arguments.");
 	return us.get_values();
 }
 
-std::vector<std::string> ConsoleApp::values(const std::string& name) const
+std::vector<std::string> ConsoleApp::ConsoleApp::values(const std::string& name) const
 {
 	assert(m_argschecked && "Attempt to get values before parsing command line arguments.");
 	return us.get_values(name);
 }
 
-int ConsoleApp::Run()
+int ConsoleApp::ConsoleApp::Run()
 {
 	assert(m_argschecked && "Arguments must be parsed and checked first.");
 	int nbfiles{ 0 };
@@ -85,7 +85,7 @@ int ConsoleApp::Run()
 	return nbfiles;
 }
 
-int ConsoleApp::ByFile()
+int ConsoleApp::ConsoleApp::ByFile()
 {
 	int nbfiles{ 0 };
 	auto files = us.get_Argument("file");
@@ -93,7 +93,7 @@ int ConsoleApp::ByFile()
 		return nbfiles;
 	for (auto value : files->value)
 	{
-		auto filelist = dir(value);
+		auto filelist = file_utils::dir(value);
 		for (auto file : filelist)
 		{
 			try {
@@ -108,7 +108,7 @@ int ConsoleApp::ByFile()
 	return nbfiles;
 }
 
-std::filesystem::path ConsoleApp::getOutPath(const std::filesystem::path& inpath)
+std::filesystem::path ConsoleApp::ConsoleApp::getOutPath(const std::filesystem::path& inpath)
 {
 	auto extarg = us.get_Argument("extension");
 	if (extarg == NULL || !Arguments_Checked())
