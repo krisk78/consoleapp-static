@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <usage-static.hpp>
+#include <CLI/CLI.hpp>
 
 /*! \brief The namespace used for the class ConsoleApp.*/
 namespace ConsoleApp
@@ -22,12 +22,17 @@ namespace ConsoleApp
 		Then, the control of arguments is done by calling the member function Arguments and the execution of the logic is performed by calling the member function Run.
 		An option is available on Windows platforms to display the messages in a modal window instead of the console outputs.
 	*/
-	class ConsoleApp
+	class ConsoleApp : public CLI::App
 	{
 	public:
 
 		/*! \brief Default constructor. */
-		ConsoleApp() = default;
+		ConsoleApp() : CLI::App("undefined") {};
+
+		/*! \brief Constructor that sets the application name.
+		*	\param appName the name of the application
+		*/
+		ConsoleApp(std::string appName) : CLI::App(appName) {};
 
 #ifdef _WIN32
 		/*! \brief Windows constructor that sets the window mode.
@@ -35,7 +40,15 @@ namespace ConsoleApp
 		*	\warning This constructor is only available on Windows platforms. The display of a message in a modal window suspends the execution of the application.
 		*/
 		ConsoleApp(bool windowsmode)
-			: m_windowsmode(windowsmode) {};								// if windowsmode is true then messages are displayed in a modal window else to console
+			: CLI::App("undefined"), m_windowsmode(windowsmode) {};								// if windowsmode is true then messages are displayed in a modal window else to console
+
+		/*! \brief Windows constructor that sets the application name and the windows mode.
+		*	\param appName the name of the application
+		*	\param windowsmode true to activate the windows mode
+		*	\warning This constructor is only available on Windows platforms. The display of a message in a modal window suspends the execution of the application.
+		*/
+		ConsoleApp(std::string appName, bool windowsmode)
+			: CLI::App(appName), m_windowsmode(windowsmode) {};
 #endif // _WIN32
 
 		/*! \brief Checks if messages are displayed in a modal window.
@@ -57,7 +70,7 @@ namespace ConsoleApp
 		*	\li other messages: an error occurred during parsing, it has been displayed and the main program should exit with an error.
 		*	\sa <a href="https://krisk78.github.io/usage-static/html/class_usage_1_1_usage.html" target="_new">Usage::set_parameters()</a>
 		*/
-		std::string Arguments(int argc, char* argv[]);						// Launches SetUsage and parses the command line performing standard usage controls, then launches Check_Arguments
+		std::string Arguments(int argc, char* argv[]);						// Parses the command line performing standard usage controls, then launches Check_Arguments
 
 		/*! \brief Checks if the arguments have been parsed yet.
 		*	\return true if arguments have been parsed
@@ -90,14 +103,8 @@ namespace ConsoleApp
 		int Run();															// Runs the sequence PreProcess, ByFile and PostProcess and returns the number of files processed
 
 	protected:
-		/*! \brief Implements an Usage object to handle arguments.
-		*	\sa <a href="https://krisk78.github.io/usage-static/html/class_usage_1_1_usage.html" target="_new">Usage</a>
-		*/
-		Usage::Usage	us{ "undefined" };											// Contains args and values
 
 		/*! \brief This function must be overriden to set the arguments list and rules and the help output.
-		*
-		*	\sa <a href="https://krisk78.github.io/usage-static/html/class_usage_1_1_usage.html" target="_new">Usage</a>
 		*/
 		virtual void SetUsage() = 0;										// Defines expected arguments and help.
 

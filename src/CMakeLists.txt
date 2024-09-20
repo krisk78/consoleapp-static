@@ -3,7 +3,11 @@ set(${PROJECT_NAME}_LINK_INTERFACE_LIBS "")
 
 foreach(_DEP_LIB ${${PROJECT_NAME}_DEPENDENCIES})
     find_package(${_DEP_LIB} CONFIG REQUIRED)
-    list(APPEND ${PROJECT_NAME}_LINK_PUBLIC_LIBS ${_DEP_LIB}::${_DEP_LIB})
+    if(_DEP_LIB STREQUAL "cli11")
+        list(APPEND ${PROJECT_NAME}_LINK_PUBLIC_LIBS CLI11::CLI11)
+    else()
+        list(APPEND ${PROJECT_NAME}_LINK_PUBLIC_LIBS ${_DEP_LIB}::${_DEP_LIB})
+    endif()
 endforeach()
 
 foreach(_DEP_LIB ${${PROJECT_NAME}_INTERFACES})

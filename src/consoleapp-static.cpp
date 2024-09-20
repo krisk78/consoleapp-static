@@ -20,35 +20,47 @@ std::string ConsoleApp::ConsoleApp::Arguments(int argc, char* argv[])
 {
 	assert(!m_argschecked && "Arguments checks were already performed.");	// Arguments function should be called once
 	SetUsage();
-	if (us.program_name == "undefined")
+	if (get_name() == "undefined")
 	{
-		us.program_name = argv[0];
-		auto itr = us.program_name.find_last_of("/\\");
+		std::string appName = argv[0];
+		auto itr = appName.find_last_of("/\\");
 		if (itr != std::string::npos)
-			us.program_name = us.program_name.substr(itr + 1, us.program_name.size() - itr);
+			appName = appName.substr(itr + 1, appName.size() - itr);
+		name(appName);
 	}
-	auto msg = us.set_parameters(argc, argv);
-	if (msg == "?")
+	try
 	{
-#ifdef _WIN32
-		if (m_windowsmode)
+		parse(argc, argv);
+	}
+	catch (const CLI::ParseError& e)
+	{
+		if (e.get_exit_code() == 0)		// help is requested
 		{
-			std::ostringstream os;
-			os << us;
-			MessageBox(NULL, str_utils::str_to_wstr(os.str(), CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+			if (m_windowsmode)
+#ifdef _WIN32
+				MessageBox(NULL, str_utils::str_to_wstr(help(), CP_ACP).c_str(), str_utils::str_to_wstr(get_name(), CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+#endif
+			else
+				std::cout << help();
+			return "?";
 		}
 		else
-#endif // _WIN32
-			std::cout << us;
-		return msg;				// m_argschecked is not set to true because in this case there is nothing to run
+		{
+			if (m_windowsmode)
+#ifdef _WIN32
+				MessageBox(NULL, str_utils::str_to_wstr(e.what(), CP_ACP).c_str(), str_utils::str_to_wstr(get_name(), CP_ACP).c_str(), MB_ICONERROR | MB_OK);
+#endif
+			else
+				std::cerr << e.what();
+		}
+		return e.what();
 	}
-	if (msg.size() == 0)
-		msg = CheckArguments();
+	auto msg = CheckArguments();
 	if (msg.size() != 0)
 	{
 #ifdef _WIN32
 		if (m_windowsmode)
-			MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONERROR | MB_OK);
+			MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(get_name(), CP_ACP).c_str(), MB_ICONERROR | MB_OK);
 		else
 #endif // _WIN32
 			std::cout << msg;
@@ -60,13 +72,19 @@ std::string ConsoleApp::ConsoleApp::Arguments(int argc, char* argv[])
 std::unordered_map<std::string, std::vector<std::string>> ConsoleApp::ConsoleApp::values() const
 {
 	assert(m_argschecked && "Attempt to get values before parsing command line arguments.");
-	return us.get_values();
+	std::unordered_map<std::string, std::vector<std::string>> args_map;
+	for (const auto& option : get_options())
+		if (option->count() > 0)
+			args_map[option->get_name()] = option->results();
+	return args_map;
 }
 
 std::vector<std::string> ConsoleApp::ConsoleApp::values(const std::string& name) const
 {
 	assert(m_argschecked && "Attempt to get values before parsing command line arguments.");
-	return us.get_values(name);
+	auto option = get_option(name);
+	assert(option && "Unknown argument name.");
+	return option->results();
 }
 
 int ConsoleApp::ConsoleApp::Run()
@@ -88,10 +106,10 @@ int ConsoleApp::ConsoleApp::Run()
 int ConsoleApp::ConsoleApp::ByFile()
 {
 	int nbfiles{ 0 };
-	auto files = us.get_Argument("file");
-	if (files == NULL || !files->required() && files->value.empty())
+	auto files = get_option("files");
+	if (files == NULL || !files->required() && files->results().empty())
 		return nbfiles;
-	for (auto value : files->value)
+	for (auto value : files->results())
 	{
 		auto filelist = file_utils::dir(value);
 		for (auto file : filelist)
@@ -110,10 +128,10 @@ int ConsoleApp::ConsoleApp::ByFile()
 
 std::filesystem::path ConsoleApp::ConsoleApp::getOutPath(const std::filesystem::path& inpath)
 {
-	auto extarg = us.get_Argument("extension");
+	auto extarg = get_option("extension");
 	if (extarg == NULL || !Arguments_Checked())
 		return std::filesystem::path(inpath);
 	std::filesystem::path outpath = inpath;
-	outpath.replace_extension(extarg->value.front());
+	outpath.replace_extension(extarg->results().front());
 	return outpath;
 }

@@ -1,8 +1,8 @@
 
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#define UNICODE
-#include <Windows.h>
+	#define UNICODE
+	#include <Windows.h>
 #endif
 
 #include <filesystem>
@@ -32,16 +32,12 @@ class MyAppTest : public ::testing::Test
 protected:
 	void SetUp() override
 	{
-		std::vector<const char*> argv_const{ "program.exe", "any_file" };
+		std::vector<const char*> argv_const{ "program.exe", "any_file(s)" };
 		std::vector<char*> argv;
 		for (const char* arg : argv_const) { argv.push_back(const_cast<char*>(arg)); }
 		myAppFriend.Arguments((int)argv.size(), &argv[0]);
 		argv.clear();
-#ifdef _WIN32
-		argv_const = { "program.exe", "any_file", "/o:" };
-#elif __unix__
-		argv_const = { "program.exe", "any_file", "-o:" };
-#endif
+		argv_const = { "program.exe", "any_file(s)", "-e\".\"" };
 		for (const char* arg : argv_const) { argv.push_back(const_cast<char*>(arg)); }
 		myAppFriend2.Arguments((int)argv.size(), &argv[0]);
 	}
@@ -66,13 +62,8 @@ using MyAppTestDeath = MyAppTest;
 
 TEST_F(MyAppTest, Wrong_Syntax)
 {
-#ifdef _WIN32
-	std::string expected_str{ "Unknown argument '/t' - see program.exe /? for help." };
-	std::vector<const char*> argv_const{ "program.exe", "/t" };
-#elif __unix__
-	std::string expected_str{ "Unknown argument '-t' - see program.exe -h for help." };
-	std::vector<const char*> argv_const{ "program.exe", "-t" };
-#endif
+	std::string expected_str{ "The following argument was not expected: -t" };
+	std::vector<const char*> argv_const{ "program.exe", "any_file(s)", "-t" };
 	std::vector<char*> argv;
 	for (const char* arg : argv_const) { argv.push_back(const_cast<char*>(arg)); }
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), expected_str.c_str());
@@ -83,11 +74,7 @@ TEST_F(MyAppTest, Wrong_Syntax)
 
 TEST_F(MyAppTestDeath, Parse_More_Than_One_Time)
 {
-#ifdef _WIN32
-	std::vector<const char*> argv_const{ "program.exe", "/t" };
-#elif __unix__
-	std::vector<const char*> argv_const{ "program.exe", "-t" };
-#endif
+	std::vector<const char*> argv_const{ "program.exe", "any_file(s)" };
 	std::vector<char*> argv;
 	for (const char* arg : argv_const) { argv.push_back(const_cast<char*>(arg)); }
 	cons0.Arguments((int)argv.size(), &argv[0]);
@@ -96,11 +83,7 @@ TEST_F(MyAppTestDeath, Parse_More_Than_One_Time)
 
 TEST_F(MyAppTest, Help)
 {
-#ifdef _WIN32
-	std::vector<const char*> argv_const{ "program.exe", "/?" };
-#elif __unix__
 	std::vector<const char*> argv_const{ "program.exe", "-h" };
-#endif
 	std::vector<char*> argv;
 	for (const char* arg : argv_const) { argv.push_back(const_cast<char*>(arg)); }
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "?");
@@ -138,7 +121,7 @@ TEST_F(MyAppTest, Matching_Files)
 	std::vector<char*> argv;
 	for (const char* arg : argv_const) { argv.push_back(const_cast<char*>(arg)); }
 	EXPECT_STREQ(cons0.Arguments((int)argv.size(), &argv[0]).c_str(), "Arguments are checked.");
-	auto files = cons0.values("file");
+	auto files = cons0.values("files");
 	EXPECT_EQ(files.size(), 1);
 }
 
@@ -220,17 +203,10 @@ TEST_F(MyAppTest, GetOutPath_RemoveExtension)
 
 void MyApp::SetUsage()
 {
-	us.set_syntax("program.exe arguments...");
-	Usage::Unnamed_Arg f{ "file" };
-	f.set_required(true);
-	f.many = true;
-	us.add_Argument(f);
-	Usage::Named_Arg ext{ "extension" };
-	ext.shortcut_char = 'o';
-	ext.set_type(Usage::Argument_Type::string);
-	ext.set_default_value(".ext");
-	us.add_Argument(ext);
-	us.description = "Program description.";
+	name("program.exe");
+	add_option("files", "File(s) to convert")->expected(-1)->required();
+	add_option("-e,--extension", "Ouput file extension")->default_val(".ext");
+	description("Program description.");
 }
 
 std::string MyApp::CheckArguments()
@@ -243,7 +219,7 @@ void MyApp::PreProcess()
 	const std::string msg{ "Preprocessing..." };
 #ifdef _WIN32
 	if (windows_mode())
-		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(get_name(), CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 	else
 #endif // _WIN32
 		std::cout << msg << std::endl;
@@ -254,7 +230,7 @@ void MyApp::MainProcess(const std::filesystem::path& file)
 	const std::string msg{ "Processing file " + file.string() };
 #ifdef _WIN32
 	if (windows_mode())
-		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(get_name(), CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 	else
 #endif // _WIN32
 		std::cout << msg << std::endl;
@@ -265,7 +241,7 @@ void MyApp::PostProcess()
 	const std::string msg{ "Postprocessing..." };
 #ifdef _WIN32
 	if (windows_mode())
-		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(us.program_name, CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
+		MessageBox(NULL, str_utils::str_to_wstr(msg, CP_ACP).c_str(), str_utils::str_to_wstr(get_name(), CP_ACP).c_str(), MB_ICONINFORMATION | MB_OK);
 	else
 #endif // _WIN32
 		std::cout << msg << std::endl;
